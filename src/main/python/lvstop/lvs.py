@@ -12,7 +12,7 @@ import os.path
 #_ip_vs_file = '../src/unittest/resource/ip_vs_2'
 #_ip_vs_stat_file = '../src/unittest/resource/ip_vs_stats'
 
-_ip_vs_file = 'proc/net/ip_vs'
+_ip_vs_file = '/proc/net/ip_vs'
 _ip_vs_stat_file = '/proc/net/ip_vs_stats'
 
 if not os.path.isfile(_ip_vs_file):
