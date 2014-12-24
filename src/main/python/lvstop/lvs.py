@@ -9,18 +9,20 @@ __lvs_version = None
 import string
 import os.path
 
-#_ip_vs_file = '../../unittest/resource/ip_vs_2'
-#_ip_vs_stat_file = '../../unittest/resource/ip_vs_stats'
 
-_ip_vs_file = '/proc/net/ip_vs'
-_ip_vs_stat_file = '/proc/net/ip_vs_stats'
+if os.environ.has_key("DEV"):
+    _IP_VS_FILE = '../../unittest/resource/ip_vs_2'
+    _IP_VS_STAT_FILE = '../../unittest/resource/ip_vs_stats'
+else:
+    _IP_VS_FILE = '/proc/net/ip_vs'
+    _IP_VS_STAT_FILE = '/proc/net/ip_vs_stats'
 
-if not os.path.isfile(_ip_vs_file):
-    raise RuntimeError("LVS is disabled. File \'"+_ip_vs_file+"\' not found.")
+if not os.path.isfile(_IP_VS_FILE):
+    raise RuntimeError("LVS is disabled. File \'"+_IP_VS_FILE+"\' not found.")
 
 def ip_vs_stat():
     ipvs = []
-    with open(_ip_vs_stat_file, 'rb') as f:
+    with open(_IP_VS_STAT_FILE, 'rb') as f:
         for line in f:
             ipvs += [' '+line]
     return ipvs
@@ -28,7 +30,7 @@ def ip_vs_stat():
 def ip_vs_parse():
     global __lvs_version
     v_endpoints = []
-    with open(_ip_vs_file, 'rb') as f:
+    with open(_IP_VS_FILE, 'rb') as f:
         if __lvs_version is None:
             __lvs_version = f.readline()
         else:
@@ -51,13 +53,15 @@ def ip_vs_parse():
         
     return v_endpoints
 
+def _hexToInt(hexstr):
+    return int(hexstr,16)
+
 def _parce_to_ip(hexip):
     ip_l = []
     for x in range(0, 4):
         pozs = x*2
         poze = pozs+2
-        ip_l += [str(int(hexip[pozs:poze],16))]
-    
+        ip_l += [str(_hexToInt(hexip[pozs:poze]))]
     return string.join(ip_l,'.')
 
 def _parce_to_port(hexip):
@@ -80,6 +84,8 @@ class VirtualEndPoint(object):
         self.__real_servers = []
         if 'TCP' == self.mode:
             self.port = _parce_to_ip(self.port)+':'+_parce_to_port(self.port)
+        elif 'FWM' == self.mode:
+            self.port = str(_hexToInt(self.port))
 
     @property
     def real_servers(self):
