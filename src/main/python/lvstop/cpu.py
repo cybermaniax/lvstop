@@ -3,31 +3,34 @@ Created on 18 gru 2014
 
 @author: ghalajko
 '''
+import psutil
+import time
 
-def cpu_stat_proc():
-    cpus = {}
-    with open('/proc/stat', 'rb') as f:
-        for line in f:
-            if line.startswith(b"cpu"):
-                sp = line.split()
-                cpus[sp[0]] = float(int(sp[1])+int(sp[3]))/(int(sp[1])+int(sp[3])+int(sp[4]))
-    del cpus['cpu']
-    return cpus
+__cpus_lines = ()
+__last_check = None
 
 def cpus_line():
     def get_dashes(perc):
         dashes = "|" * int((float(perc) / 10 * 4))
         empty_dashes = " " * (40 - len(dashes))
         return dashes, empty_dashes
+    global __cpus_lines
+    global __last_check
     
+    last_check = __last_check
     
-    cpus = cpu_stat_proc()
-    cpus_lines = ()
-    for key,proc in cpus.items():
-        dashes, empty_dashes = get_dashes(proc*100)
-        l = " {:<4} [{:s}{:s}]{: .2%}".format(key.title(),dashes,empty_dashes,proc)
-        cpus_lines += (l,)
-    return cpus_lines
+    if None == last_check or last_check+2 < time.time():
+        __last_check = time.time()
+        percs = psutil.cpu_percent(interval=None, percpu=True)
+        cpus_lines = ()
+        for cpu_num, perc in enumerate(percs):
+            dashes, empty_dashes = get_dashes(perc)
+            l = " Cpu{:<2}[{:s}{:s} {:>5.1f}%]".format(cpu_num,dashes,empty_dashes,perc)
+            cpus_lines += (l,)
+        __cpus_lines = cpus_lines
+        
+        
+    return __cpus_lines
 
 
 if __name__ == '__main__':
