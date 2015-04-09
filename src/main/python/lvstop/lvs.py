@@ -22,9 +22,16 @@ if not os.path.isfile(_IP_VS_FILE):
 
 def ip_vs_stat():
     ipvs = []
-    with open(_IP_VS_STAT_FILE, 'rb') as f:
-        for line in f:
-            ipvs += [' '+line]
+    f = open(_IP_VS_STAT_FILE, 'rb')
+    lines = f.read()
+    data = lines.split('\n')
+    v1 = [_hexToInt(x) for x in data[2].split()]
+    v2 = [_hexToInt(x) for x in data[5].split()]
+    data[2] = str_replace(data[2], data[2].split(), v1)
+    data[5] = str_replace(data[5], data[5].split(), v2)
+
+    for line in data:
+        ipvs += [' ' + line + '\n']
     return ipvs
 
 def ip_vs_parse():
@@ -52,6 +59,11 @@ def ip_vs_parse():
                 v_endpoints.append(current_v_edpoint)
         
     return v_endpoints
+
+def str_replace(s, old, new):
+    for a, b in zip(old, new):
+        s = s.replace(str(a), str(b))
+    return s
 
 def _hexToInt(hexstr):
     return int(hexstr,16)
