@@ -67,7 +67,8 @@ def _parce_to_ip(hexip):
 def _parce_to_port(hexip):
     splited_hexip = hexip.split(':')
     v = splited_hexip[1].lstrip('0')
-    return [v,'0'][len(v) <= 0] 
+    t = [v,'0'][len(v) <= 0]
+    return str(_hexToInt(t))
 
 class VirtualEndPoint(object):
 
